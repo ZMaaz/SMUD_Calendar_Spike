@@ -15,14 +15,14 @@
  #### IMPORTS #####
 
 import time
-from datetime import timedelta, time, datetime
+from datetime import date, timedelta, time, datetime
 import numpy
-from AllThingsClickCopy import GetClickObject
+from AllThingsClickCopy import GetClickObject, UpdateClickObject
 from AllThingsClickCopy import prodObjectCheck
 from AllThingsClickCopy import environmentUsr
 from AllThingsClickCopy import environmentPwd
 ## VARIABLE ##
-data_list = []
+
 
 ###  VARIABLES ###
 prodCheck = False
@@ -35,13 +35,12 @@ clickObj = 'Calendar'
 # Function to calculate startDate intervals -> startDate start and startDate end times
 def automate_time(start_hour, start_minute, startDate, name):
     time_str = startDate.strftime("%H::%M::%S")  # extracting time from the startDate object into startTimestring
-    time_object = datetime.strptime(time_str, '%H::%M::%S') # converting time_str into datetime object
-    
+    time_object = datetime.strptime(time_str, '%H::%M::%S')# converting time_str into datetime object
     startTime= time(start_hour, start_minute)  #startDate start time
     
     #Calculating startDate end time
     if (name == "9F11" or name == "9F21"):
-        b = time_object+timedelta(days=+0, hours=+8, minutes=+30) 
+        b = time_object+timedelta(days=+0, hours=+8, minutes=+30)
     else:
         b = time_object+timedelta(days=+0, hours=+9, minutes=+30)
 
@@ -68,13 +67,13 @@ def automate_time(start_hour, start_minute, startDate, name):
              next_day = timedelta(days=+1)
         
         next_startDate = startDate + next_day
-        print("Next startDate:", next_startDate.strftime("%Y-%m-%d")) ## Friday
+        print("Next Start Date:", next_startDate.strftime("%Y-%m-%d")) ## Friday
         day = next_startDate.strftime("%A")
         print("Day: ",day )    
         a1 = time(start_hour+1, start_minute, 00) ##new start time for Friday
         print("Start Time: ", a1)
         print("End Time: ",endTime)
-        data_object = {"Start":next_startDate.strftime("%Y-%m-%d"), "Finish":next_startDate.strftime("%Y-%m-%d"), "Day":day, "Start Time":a1.strftime("%H:%M:%S"), "End Time" :endTime.strftime("%H:%M:%S")
+        data_object = {"Start":next_startDate.strftime("%Y-%m-%d"), "Finish":next_startDate.strftime("%Y-%m-%d"), "Day":day, "Start Time":a1.strftime("%H:%M:%S"), "End Time":endTime.strftime("%H:%M:%S")
         }
     else:
         return (startTime, endTime);
@@ -99,15 +98,16 @@ def automate_time(start_hour, start_minute, startDate, name):
     
 ## function to automate calendar startDates and intervals
 def automateCalendar(name, start_hour, start_minute ):
+    data_list = []
     
-    today = datetime(year=2022, month=8, day=12)
+    startDate = datetime(year=2022, month=8, day=12)
     # n = no. of startDates
     n=1
     print("n: ", n)
     #Calculates the startDate date and time
     #startDate = datetime(year=start_year, month=start_month, day=start_day, hour=start_hour, minute=start_minute, second=00)
     # if condition to check if correct name and correct corresponding date is entered
-    yearMonth = today.strftime("%Y-%m")
+    yearMonth = startDate.strftime("%Y-%m")
     print("YEAR MONTH: ", yearMonth)
     #Find Monday
     if name == "9M21":
@@ -135,8 +135,11 @@ def automateCalendar(name, start_hour, start_minute ):
     if name == "9F11":
         startDate = numpy.busday_offset(yearMonth, 0, roll = 'forward', weekmask='Fri').astype(datetime)+timedelta(days=+7)
         
-    #print("New Date: ", type(new_start_date.astype(datetime)))
     print("New date: ", startDate)
+ 
+    start_datetime = datetime(year=startDate.year,month=startDate.month, day=startDate.day, hour=start_hour, minute=start_minute, second=00 )
+    
+    
 
     #print("startDate: ", startDate.strftime("%Y-%m-%d"))
     day = startDate.strftime("%A")
@@ -145,12 +148,12 @@ def automateCalendar(name, start_hour, start_minute ):
     tom = timedelta(days=+14)
     #function to calculate startDate intervals
     if name=="9F11" or name == "9F21":
-        startTime, endTime = automate_time(start_hour, start_minute,  startDate, name)
+        startTime, endTime = automate_time(start_hour, start_minute,  start_datetime, name)
         data_object = {"Start":startDate.strftime("%Y-%m-%d"), "Finish":startDate.strftime("%Y-%m-%d"), "Day":day, "Start Time":startTime.strftime("%H:%M:%S"), "End Time" :endTime.strftime("%H:%M:%S")
         }
         data_list.append(data_object)
     else: # for all other calendars
-        startTime, endTime , data_object_returned= automate_time(start_hour, start_minute,  startDate, name)
+        startTime, endTime , data_object_returned= automate_time(start_hour, start_minute, start_datetime, name)
         
         data_object = {"Start":startDate.strftime("%Y-%m-%d"), "Finish":startDate.strftime("%Y-%m-%d"), "Day":day, "Start Time":startTime.strftime("%H:%M:%S"), "End Time" :endTime.strftime("%H:%M:%S")
         }
@@ -187,6 +190,7 @@ def automateCalendar(name, start_hour, start_minute ):
     print()
     print("done function")
     return (data_list)
+
         #return  ("Start date: ",startDate.strftime("%Y-%m-%d"))
         #return [startDate.strftime("%Y-%m-%d"),endDate.strftime("%Y-%m-%d"), new_startDate.strftime("%A"), startTime, endTime, n-1]
     
@@ -234,6 +238,13 @@ def automateCalendar(name, start_hour, start_minute ):
     
 #     return postBody
     
+# def post_body_forClick(calendarObj):
+# # # TODO: Create the final Post Body function to leverage the ClickSoftware API to update Calendars like what you did in PostMan
+#     postBody = calendarObj
+        
+    
+#     return postBody
+
 
 def create_weeklyInterval(start, finish, day, startTime, endTime):
 # TODO: Add arguments to this function
@@ -256,71 +267,107 @@ def create_weeklyInterval(start, finish, day, startTime, endTime):
 # Empty Array
 timePhasedWeeklyLevelArray = []
 
-# Append one weekly Interval to array
-# timePhasedWeeklyLevelArray.append(create_weeklyInterval(start, finish, day, startTime, endTime))
+# prodCheck = False
+# env = 'DEV'
+# params = ''
+# clickObj = 'Calendar'
 
-# for key, value in calendarObj.items():
-#      print(key, ' : ', value)
-# # for key, value in student_score.items():
-# #     print(key, ' : ', value)
-# # print(*a, sep = "\n")
-#print(*timePhasedWeeklyLevelArray, sep = "\,")
-
-
-
-
-
+# def UpdateClickObject(data, URL, username, password):
+# def GetClickObject(obj, PARAMS, url, username, password):
 
 obj = GetClickObject(clickObj, params, prodObjectCheck(prodCheck), environmentUsr(env), environmentPwd(env) )
+#obj = GetClickObject(clickObj, 'https://fse-na-sb-int01.cloud.clicksoftware.com/so/api/Services/Calendar/GetCalendarIntervals', prodObjectCheck(prodCheck), environmentUsr(env), environmentPwd(env) )
+#print(obj)
 print(len(obj))
+count=0
+obj_9 = []
 for o in obj:
     x = o['Name'].split()  # name
     if x[0][0] == '9':
-        print(x[0])
+        # count+=1
+        # print(count, x[0])
+        obj_9.append(o)
+print(len(obj_9))
+print(obj_9)
 print()
-for o in obj:
-    #print(o["Name"], o["Key"])
-    x = o['Name'].split()  # name
-    y = o["Name"].split(":") #start time
-    # print(len(x))
+# num = 0
 
-    # print(x[0][0])
-    if x[0][0] == '9':
-        print(x[0])
-        key = o["Key"]
-        print("Key: ", o["Key"])
-        name = x[0][0:4]
-        hour = y[1][0]
-        min = y[1][1:3]
-        print("NEW CALENDAR")
-        print(name)
+for o1 in obj_9:
+    count+=1
+    
+    x1 = o1['Name'].split() #name
+    print(count, x1[0])
+    name = x1[0][0:4]
+    calendarName = x1[0]
+    print(calendarName)
+    
+    key = o1["Key"]
+    print("Key:", key)
+    
+    y1 = o1['Name'].split(":") #start_time
+    hour = y1[1][0]
+    min = y1[1][1:3]
+    print("NEW CALENDAR")
+    result = automateCalendar(name, int(hour), int(min))
+    print("Type result: ", type(result))
+    # print("Result: ", len(result))
+
+    ## Function to convert string to datetime
+    # datetime.strptime(date_string, format)
+    for o2 in result:
+        print()
+        print(o2)
+        # string str = DateTime.Now.ToString("yyyy-MM-dd'T'HH:mm:ss.fffffff'Z'");
+        start = o2["Start"]
         # print(start)
-        # print(end)
-        result= automateCalendar(name, int(hour), int(min))
-    
-        for o in result:
-            start = o["Start"]
-            finish = o["Finish"]
-            day = o["Day"]
-            startTime = o["Start Time"]
-            endTime = o["End Time"]
-            timePhasedWeeklyLevelArray.append(create_weeklyInterval(start, finish, day, startTime, endTime))
-            # print(o["Start"])
-        print(len(timePhasedWeeklyLevelArray))
-        print(*timePhasedWeeklyLevelArray, sep = "\n")
-            #print(timePhasedWeeklyLevelArray)
+        print("TYPE Start: ", type(start))
+        start2 = datetime.strptime(start, "%Y-%m-%d")
+        # print(start2)
+        start3 = datetime.strftime(start2, "%Y-%m-%dT%H:%M:%S")
+        print("Start3: ", start3)
+        # print(type(start3))
+        finish_new = start2+timedelta(days=+7)
+      
+        finish = o2["Finish"]
+        finish2= datetime.strptime(finish, "%Y-%m-%d")
+        finish3 = datetime.strftime(finish_new, "%Y-%m-%dT%H:%M:%S")
+        print("Finish 3: ", finish3)
 
-        calendarObj = {"Calendar Key": key, "Name": name, "CalendarIntervals" : {"TimePhasedWeeklyInterval": timePhasedWeeklyLevelArray}}
-        # print(calendarObj)
-          
-        print()
-        timePhasedWeeklyLevelArray=[]
-        print(len(timePhasedWeeklyLevelArray))
+        day = o2["Day"]
+        startTime = o2["Start Time"]
+        endTime = o2["End Time"]
+        timePhasedWeeklyLevelArray.append(create_weeklyInterval(start3, finish3, day, startTime, endTime))
+        # print("Time array:", len(timePhasedWeeklyLevelArray))  
         
-        print("CALENDAR DONE!!")
-       
-       
-        print()
-    
-# result= automateCalendar(name, start, end)
-print("DONE")
+        # calendarObj = {"@objectType": "Calendar", "CalendarKey": key, "Name": name, "CalendarIntervals" : {"TimePhasedWeeklyInterval": timePhasedWeeklyLevelArray}}
+        
+        calendarObj = {"CalendarKey": key, "Name": calendarName, "CalendarIntervals" : {"TimePhasedWeeklyInterval": timePhasedWeeklyLevelArray, "OverwriteExisting": True} }
+    print()
+    # body = post_body_forClick(calendarObj)
+    # print(body)
+    # print()
+
+    print("CALENDAR DONE!!")
+    print()
+
+    print("Updating Click Objects")
+    URL = "https://fse-na-sb-int01.cloud.clicksoftware.com/so/api/Services/Calendar/UpdateCalendarIntervals?$filter=(contains(Name,'9F21-UC3:630-400'))"
+    UpdateClickObject(calendarObj,URL , environmentUsr(env), environmentPwd(env))
+    # UpdateClickObject(calendarObj, prodObjectCheck(prodCheck), environmentUsr(env), environmentPwd(env))
+    print()
+    #print(calendarObj)
+    # print(calendarObj["CalendarKey"])
+    # print(calendarObj["Name"])
+    # print(*calendarObj["CalendarIntervals"]["TimePhasedWeeklyInterval"], sep = "\n")
+    result=[]
+    timePhasedWeeklyLevelArray=[]
+    # print("Result:",len(result))
+    # print("Time array:", len(timePhasedWeeklyLevelArray))
+    # num+=1 
+    # if num == 2: 
+    #  break
+    break
+
+
+
+print("DONE !!")
